@@ -17,9 +17,12 @@ USERNAME = 'username@gmail.com'
 PASSWORD = 'password'
 SSL = True
 
-server = IMAPClient(HOST, use_uid=True, ssl=SSL)
-server.login(USERNAME, PASSWORD)
+try:
+    server = IMAPClient(HOST, use_uid=True, ssl=SSL)
+except:
+    raise Exception('Could not successfully connect to the IMAP host')
 
+server.login(USERNAME, PASSWORD)
 server.select_folder('[Gmail]/All Mail')
 
 # that's why we only support gmail
