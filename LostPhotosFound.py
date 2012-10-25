@@ -49,8 +49,10 @@ for m in messages:
             if not filename:
                 filename = 'attachment-%03d%s' % (seq, 'bin')
                 seq += 1
-            saved = os.path.join('./', filename)
-            if not os.path.isfile(saved) :
+            if not os.path.isdir(USERNAME):
+                os.mkdir(USERNAME)
+            saved = os.path.join(USERNAME, filename)
+            if not os.path.isfile(saved):
                 f = open(saved, 'wb')
                 f.write(part.get_payload(decode=True))
                 f.close()
