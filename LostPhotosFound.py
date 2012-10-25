@@ -27,6 +27,7 @@ from imapclient import IMAPClient
 HOST = 'imap.gmail.com'
 USERNAME = 'username@gmail.com'
 PASSWORD = 'password'
+ALL_MAIL = '[Gmail]/All Mail'
 SSL = True
 
 try:
@@ -35,7 +36,14 @@ except:
     raise Exception('Could not successfully connect to the IMAP host')
 
 server.login(USERNAME, PASSWORD)
-server.select_folder('[Gmail]/All Mail')
+
+if server.folder_exists(ALL_MAIL):
+    server.select_folder(ALL_MAIL)
+else:
+    print "Available folders:"
+    for f in server.list_folders():
+        print f[-1]
+    raise Exception('Your "All Mail" label is either not visible or in another language!')
 
 # that's why we only support gmail
 # for other mail services we'd have to translate the custom
