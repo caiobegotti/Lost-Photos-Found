@@ -8,6 +8,7 @@
 #	- save the attached images with a timestamp or "comment" with date/time etc
 #	- create a simple interface with pyqt like an album frame (QFileSystemWatcher?)
 #	- CLI options for host, username, password, folder, criteria and attachment size
+#	- is_multipart() seems better in case the attachment is too big (it crashes)
 #	- better (real) debug logging :-)
 
 # to save the images
