@@ -12,7 +12,6 @@
 #	- create a simple interface with pyqt like an album frame (QFileSystemWatcher?)
 #	- CLI options for host, username, password, folder, criteria and attachment size
 #	- is_multipart() seems better if attachment is too big/inline (it crashes)
-#	- check if All Mail labels is visible before selecting it
 #	- better (real) debug logging :-)
 
 # to save the images
@@ -37,13 +36,18 @@ except:
 
 server.login(USERNAME, PASSWORD)
 
-if server.folder_exists(ALL_MAIL):
-    server.select_folder(ALL_MAIL)
-else:
-    print "Available folders:"
-    for f in server.list_folders():
-        print f[-1]
-    raise Exception('Your "All Mail" label is either not visible or in another language!')
+if not server.folder_exists(ALL_MAIL):
+    for folder in server.xlist_folders():
+        labels = folder[0]
+        if 'AllMail' in labels[-1]:
+            ALL_MAIL = folder[2]
+
+server.select_folder(ALL_MAIL)
+
+    #print "Available folders:"
+    #for f in server.list_folders():
+    #    print f[-1]
+    #raise Exception('Your "All Mail" label is either not visible or in another language!')
 
 # that's why we only support gmail
 # for other mail services we'd have to translate the custom
@@ -61,6 +65,7 @@ for m in messages:
         mail = email.message_from_string(data[d]['RFC822'])
         if mail.get_content_maintype() != 'multipart':
             continue
+        
         print "["+mail["From"]+"]: " + mail["Subject"]
         for part in mail.walk():
             if part.get_content_maintype() == 'multipart':
