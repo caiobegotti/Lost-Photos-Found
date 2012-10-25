@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 # code is under GPLv2
 # <caio1982@gmail.com>
+#
+# TODO:
+#	- avoid looping through messages already processed (i.e. resume support)
+#	- save the attached images with a timestamp or "comment" with date/time etc
+#	- create a simple interface with pyqt like an album frame (QFileSystemWatcher?)
+#	- CLI options for host, username, password, folder, criteria and attachment size
+#	- better (real) debug logging :-)
 
 # to save the images
 import os
