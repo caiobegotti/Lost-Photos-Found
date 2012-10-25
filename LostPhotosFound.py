@@ -18,7 +18,8 @@
 import os
 
 # to build the mail object and pickle fields
-import email
+from email import message_from_string
+from email.header import decode_header
 
 # the working man (should we connect to IMAP as a read-only client btw?)
 from imapclient import IMAPClient
@@ -62,11 +63,26 @@ for m in messages:
     data = server.fetch([m], ['RFC822'])
     for d in data:
         # SEQ is also available
-        mail = email.message_from_string(data[d]['RFC822'])
+        mail = message_from_string(data[d]['RFC822'])
         if mail.get_content_maintype() != 'multipart':
             continue
         
-        print "["+mail["From"]+"]: " + mail["Subject"]
+        # this whole mess up to the print statement
+        # is only for debugging purposes :-(
+        header_from = mail["From"]
+        if not decode_header(header_from).pop(0)[1]:
+            header_from = decode_header(header_from).pop(0)[0].decode('iso-8859-1').encode('utf-8')
+        else:
+            header_from = decode_header(header_from).pop(0)[0].decode(decode_header(header_from).pop(0)[1]).encode('utf-8')
+        
+        header_subject = mail["Subject"]
+        if not decode_header(header_subject).pop(0)[1]:
+            header_subject = decode_header(header_subject).pop(0)[0].decode('iso-8859-1').encode('utf-8')
+        else:
+            header_subject = decode_header(header_subject).pop(0)[0].decode(decode_header(header_subject).pop(0)[1]).encode('utf-8')
+        
+        print '[%s]: %s' % (header_from, header_subject)
+
         for part in mail.walk():
             if part.get_content_maintype() == 'multipart':
                 continue
