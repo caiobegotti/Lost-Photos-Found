@@ -41,15 +41,7 @@ def get_messages(server):
     # that's why we only support gmail
     # for other mail services we'd have to translate the custom
     # search to actual IMAP queries, thus no X-GM-RAW cookie to us
-    criteria = 'X-GM-RAW "has:attachment filename:(jpg OR
-                                                  jpeg OR
-                                                   gif OR
-                                                   png OR
-                                                  tiff OR
-                                                   tif OR
-                                                   ico OR
-                                                   xbm OR
-                                                   bmp)"'
+    criteria = 'X-GM-RAW "has:attachment filename:(jpg OR jpeg OR gif OR png OR tiff OR tif OR ico OR xbm OR bmp)"'
     messages = server.search([criteria])
 
     # stats
@@ -74,12 +66,13 @@ def save_part(part, mail):
                                           header_date[5])
     filename = header_date + filename
 
-    if not os.path.isdir(USERNAME):
-        os.mkdir(USERNAME)
+    username = config.get('Gmail', 'username')
+    if not os.path.isdir(username):
+        os.mkdir(username)
 
     print '\t...%s' % (filename)
 
-    saved = os.path.join(USERNAME, filename)
+    saved = os.path.join(username, filename)
     if not os.path.isfile(saved):
         f = open(saved, 'wb')
         f.write(part.get_payload(decode=True))
