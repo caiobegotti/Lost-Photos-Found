@@ -158,13 +158,11 @@ class Server:
     
         saved = os.path.join(username, filename)
         if not os.path.isfile(saved):
-            f = open(saved, 'wb')
-
-            # for some reason get_payload fails sometimes
-            # it is suspected to happen when images are not
-            # really multipart attachments but inline instead?
-            f.write(part.get_payload(decode=True))
-            f.close()
+            with open(saved, 'wb') as imagefile:
+                # for some reason get_payload fails sometimes
+                # it is suspected to happen when images are not
+                # really multipart attachments but inline instead?
+                imagefile.write(part.get_payload(decode=True))
     
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
