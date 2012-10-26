@@ -4,6 +4,7 @@
 # <caio1982@gmail.com>
 
 import os
+import sys
 import time
 
 # to build the mail object and pickle fields
@@ -16,7 +17,6 @@ from imapclient import IMAPClient
 
 # for configuration file
 import ConfigParser
-import sys
 
 
 def get_server(host, username, password):
