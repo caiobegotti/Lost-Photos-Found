@@ -1,4 +1,5 @@
-TODO:
+TODO
+----
 
 - avoid looping through messages already processed (i.e. resume support)
 - save the attached images with a timestamp or "comment" with date/time etc
