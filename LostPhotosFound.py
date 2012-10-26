@@ -3,7 +3,6 @@
 # code is under GPLv2
 # <caio1982@gmail.com>
 
-# to save the images
 import os
 import time
 
