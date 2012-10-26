@@ -1,0 +1,8 @@
+
+imapclient module:
+
+	sudo easy_install -U distribute && easy_install IMAPClient
+
+    or
+
+	pip install imapclient
