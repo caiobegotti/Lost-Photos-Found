@@ -93,11 +93,11 @@ class Server:
         """ The actual program is here, say. Call it and it will start saving the images """
 
         messages = self._filter_messages()
-        for m in messages:
-            data = self._server.fetch([m], ['RFC822'])
-            for d in data:
+        for msg in messages:
+            msgdata = self._server.fetch([msg], ['RFC822'])
+            for data in msgdata:
                 # SEQ is also available
-                mail = message_from_string(data[d]['RFC822'])
+                mail = message_from_string(msgdata[data]['RFC822'])
                 if mail.get_content_maintype() != 'multipart':
                     continue
                 
