@@ -15,12 +15,13 @@
 #	- is_multipart() seems better if attachment is too big/inline (it crashes)
 #	- better (real) debug logging :-)
 
-# to save the images
 import os
+import time
 
 # to build the mail object and pickle fields
 from email import message_from_string
 from email.header import decode_header
+from email.utils import parsedate
 
 # the working man (should we connect to IMAP as a read-only client btw?)
 from imapclient import IMAPClient
@@ -58,17 +59,28 @@ def get_messages(server):
     print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)
     return messages
  
-def save_part(part):
+def save_part(part, mail):
     if not hasattr(save_part, "seq"):
         save_part.seq = 0;
 
-    filename = part.get_filename()
+    filename = decode_header(part.get_filename()).pop(0)[0].decode('iso-8859-1').encode('utf-8')
     if not filename:
         filename = 'attachment-%06d.bin' % (save_part.seq)
 	save_part.seq += 1
+    
+    header_date = parsedate(mail['date'])
+    header_date = '%s-%s-%s_%s:%s:%s_' % (header_date[0],
+                                          header_date[1],
+                                          header_date[2],
+                                          header_date[3],
+                                          header_date[4],
+                                          header_date[5])
+    filename = header_date + filename
 
     if not os.path.isdir(USERNAME):
         os.mkdir(USERNAME)
+
+    print '\t...%s' % (filename)
 
     saved = os.path.join(USERNAME, filename)
     if not os.path.isfile(saved):
@@ -98,7 +110,7 @@ def filter_content(messages):
                 header_subject = decode_header(header_subject).pop(0)[0].decode('iso-8859-1').encode('utf-8')
             else:
                 header_subject = decode_header(header_subject).pop(0)[0].decode(decode_header(header_subject).pop(0)[1]).encode('utf-8')
-            
+           
             print '[%s]: %s' % (header_from, header_subject)
     
             for part in mail.walk():
@@ -106,7 +118,7 @@ def filter_content(messages):
                     continue
                 if part.get('Content-Disposition') is None:
                     continue
-                save_part(part)
+                save_part(part, mail)
 
 server = get_server(HOST, USERNAME, PASSWORD)
 messages = get_messages(server)
