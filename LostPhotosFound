@@ -42,7 +42,7 @@ class Server:
         try:
             # isn't it ugly to have so many code inside a try?
             self._server = IMAPClient(host, use_uid=True, ssl=True)
-            setattr(self._server, 'debug', True)
+            setattr(self._server, 'debug', False)
         except:
             raise Exception('Could not successfully connect to the IMAP host')
 
@@ -162,7 +162,11 @@ class Server:
                 # for some reason get_payload fails sometimes
                 # it is suspected to happen when images are not
                 # really multipart attachments but inline instead?
-                imagefile.write(part.get_payload(decode=True))
+                try:
+                    payload = part.get_payload(decode=True)
+                    imagefile.write(payload)
+                except:
+                    continue
     
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
