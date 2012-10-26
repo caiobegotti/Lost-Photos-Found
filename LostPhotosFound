@@ -73,8 +73,8 @@ class Server:
     
         self._server.select_folder(all_mail)
 
-    def _messages(self):
-        """ Interal function to filter the mails to only parse ones containing images """
+    def _filter_messages(self):
+        """ Filter mail to only parse ones containing images """
 
         # that's why we only support gmail
         # for other mail services we'd have to translate the custom
@@ -92,7 +92,7 @@ class Server:
     def lostphotosfound(self):
         """ The actual program is here, say. Call it and it will start saving the images """
 
-        messages = self._messages()
+        messages = self._filter_messages()
         for m in messages:
             data = self._server.fetch([m], ['RFC822'])
             for d in data:
