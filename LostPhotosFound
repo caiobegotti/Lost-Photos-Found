@@ -41,8 +41,8 @@ class Server:
             raise Exception('Missing IMAP host parameter in your config')
         try:
             # isn't it ugly to have so many code inside a try?
-            self.server = IMAPClient(host, use_uid=True, ssl=True)
-            setattr(self.server, 'debug', True)
+            self._server = IMAPClient(host, use_uid=True, ssl=True)
+            setattr(self._server, 'debug', True)
         except:
             raise Exception('Could not successfully connect to the IMAP host')
 
@@ -53,8 +53,6 @@ class Server:
         @param password: we highly recommend you to use 2-factor auth here
         """
 
-        s = self.server
-
         if not username or not password:
             raise Exception('Missing username or password parameters')
 
@@ -63,18 +61,17 @@ class Server:
         all_mail = '[Gmail]/All Mail'
         
         try:
-            s.login(username, password)
+            self._server.login(username, password)
         except:
             raise Exception('Cannot login, check username/password, are you using 2-factor auth?')
 
-        if not s.folder_exists(all_mail):
-            for folder in s.xlist_folders():
+        if not self._server.folder_exists(all_mail):
+            for folder in self._server.xlist_folders():
                 labels = folder[0]
                 if 'AllMail' in labels[-1]:
                     all_mail = folder[2]
     
-        s.select_folder(all_mail)
-        self.session = s
+        self._server.select_folder(all_mail)
 
     def _messages(self):
         """ Interal function to filter the mails to only parse ones containing images """
@@ -84,7 +81,7 @@ class Server:
         # search to actual IMAP queries, thus no X-GM-RAW cookie to us
         criteria = 'X-GM-RAW "has:attachment filename:(jpg OR jpeg OR gif OR png OR tiff OR tif OR ico OR xbm OR bmp)"'
         try:
-            messages = self.server.search([criteria])
+            messages = self._server.search([criteria])
         except:
             raise Exception('Search criteria return a failure, it must be a valid gmail search')    
 
@@ -96,9 +93,8 @@ class Server:
         """ The actual program is here, say. Call it and it will start saving the images """
 
         messages = self._messages()
-        server = self.server
         for m in messages:
-            data = server.fetch([m], ['RFC822'])
+            data = self._server.fetch([m], ['RFC822'])
             for d in data:
                 # SEQ is also available
                 mail = message_from_string(data[d]['RFC822'])
@@ -173,8 +169,8 @@ class Server:
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
 
-        self.server.close_folder()
-        self.server.logout()
+        self._server.close_folder()
+        self._server.logout()
     
 class Config:
     """ Configuration file manager
