@@ -52,7 +52,15 @@ def get_messages(server):
     # that's why we only support gmail
     # for other mail services we'd have to translate the custom
     # search to actual IMAP queries, thus no X-GM-RAW cookie to us
-    criteria = 'X-GM-RAW "has:attachment filename:(jpg OR jpeg OR gif OR png OR tiff OR tif OR ico OR xbm OR bmp)"'
+    criteria = 'X-GM-RAW "has:attachment filename:(jpg OR
+                                                  jpeg OR
+                                                   gif OR
+                                                   png OR
+                                                  tiff OR
+                                                   tif OR
+                                                   ico OR
+                                                   xbm OR
+                                                   bmp)"'
     messages = server.search([criteria])
 
     # stats
