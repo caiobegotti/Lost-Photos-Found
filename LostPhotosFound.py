@@ -4,7 +4,8 @@
 # <caio1982@gmail.com>
 #
 # INSTALL:
-#	sudo easy_install -U distribute && easy_install IMAPClient
+#	pip install imapclient
+#	pip install --upgrade imapclient
 #
 # TODO:
 #	- avoid looping through messages already processed (i.e. resume support)
