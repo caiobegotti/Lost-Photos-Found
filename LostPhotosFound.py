@@ -14,9 +14,10 @@ from email.utils import parsedate
 # the working man (should we connect to IMAP as a read-only client btw?)
 from imapclient import IMAPClient
 
-HOST = 'imap.gmail.com'
-USERNAME = 'username@gmail.com'
-PASSWORD = 'password'
+# for configuration file
+import ConfigParser
+import sys
+
 
 def get_server(host, username, password):
     all_mail = '[Gmail]/All Mail'
@@ -116,7 +117,48 @@ def filter_content(messages):
                     continue
                 save_part(part, mail)
 
-server = get_server(HOST, USERNAME, PASSWORD)
+class Config:
+    """ Configuration file manager
+
+    Locate, open and read configuration file options. Create a template
+    if no configuration file is found.
+
+    """
+    def __init__(self):
+        self._dir = os.path.expanduser('~/.LostPhotosFound')
+        self._file = os.path.join(self._dir, 'config')
+
+        if not os.path.isdir(self._dir):
+            os.mkdir(self._dir, 0700)
+            self._create_file()
+        elif not os.path.isfile(self._file):
+            self._create_file()
+        
+        self._config = ConfigParser.ConfigParser()
+        self._config.read(self._file)
+
+    def get(self, section, option):
+        return self._config.get(section, option)
+
+    def _create_file(self):
+        config = ConfigParser.ConfigParser()
+        config.add_section('Gmail')
+        config.set('Gmail', 'host', 'imap.gmail.com')
+        config.set('Gmail', 'username', 'username@gmail.com')
+        config.set('Gmail', 'password', 'password')
+
+        with open(self._file, 'w') as configfile:
+            config.write(configfile)
+
+        print '\nPlease edit your config file %s\n' % (self._file)
+        sys.exit()
+
+config = Config()
+host = config.get('Gmail', 'host')
+username = config.get('Gmail', 'username')
+password = config.get('Gmail', 'password')
+
+server = get_server(host, username, password)
 messages = get_messages(server)
 filter_content(messages)    
 server.close_folder()
