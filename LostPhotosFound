@@ -166,7 +166,7 @@ class Server:
                     payload = part.get_payload(decode=True)
                     imagefile.write(payload)
                 except:
-                    continue
+                    pass
     
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
