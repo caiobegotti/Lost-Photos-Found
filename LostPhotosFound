@@ -3,9 +3,14 @@
 # code is under GPLv2
 # <caio1982@gmail.com>
 
+"""
+
+LostPhotosFound...
+
+"""
+
 import os
 import sys
-import time
 
 # to build the mail object and pickle fields
 from email import message_from_string
@@ -27,6 +32,11 @@ class Server:
 
     """
     def __init__(self, host):
+        """ Server class __init__ which expects an IMAP host to connect to
+
+        @param host: gmail's default server is fine: imap.gmail.com
+        """
+
         if not host:
             raise Exception('Missing IMAP host parameter in your config')
         try:
@@ -37,6 +47,12 @@ class Server:
             raise Exception('Could not successfully connect to the IMAP host')
 
     def login(self, username, password):
+        """ Login to the IMAP server and selects the all mail folder
+       
+        @param username: your gmail account (i.e. obama@gmail.com)
+        @param password: we highly recommend you to use 2-factor auth here
+        """
+
         s = self.server
 
         if not username or not password:
@@ -61,6 +77,8 @@ class Server:
         self.session = s
 
     def _messages(self):
+        """ Interal function to filter the mails to only parse ones containing images """
+
         # that's why we only support gmail
         # for other mail services we'd have to translate the custom
         # search to actual IMAP queries, thus no X-GM-RAW cookie to us
@@ -75,6 +93,8 @@ class Server:
         return messages
  
     def lostphotosfound(self):
+        """ The actual program is here, say. Call it and it will start saving the images """
+
         messages = self._messages()
         server = self.server
         for m in messages:
@@ -110,13 +130,19 @@ class Server:
                     self._save_part(part, mail)
   
     def _save_part(self, part, mail):
+        """ Internal function to decode attachment filenames and save all them
+
+        @param mail: the mail object from message_from_string so it can checks its date
+        @param part: the part object after a mail.walk() to get multiple attachments
+        """
+
         if not hasattr(self, "seq"):
-            self.seq = 0;
+            self.seq = 0
     
         filename = decode_header(part.get_filename()).pop(0)[0].decode('iso-8859-1').encode('utf-8')
         if not filename:
             filename = 'attachment-%06d.bin' % (self.seq)
-    	self.seq += 1
+        self.seq += 1
         
         header_date = parsedate(mail['date'])
         header_date = '%s-%s-%s_%s:%s:%s_' % (header_date[0],
@@ -145,6 +171,8 @@ class Server:
             f.close()
     
     def close(self):
+        """ Gracefully closes and logs out of the IMAP server """
+
         self.server.close_folder()
         self.server.logout()
     
@@ -169,9 +197,12 @@ class Config:
         self._config.read(self._file)
 
     def get(self, section, option):
+        """ Get and return a given config field, i.e. username """
         return self._config.get(section, option)
 
     def _create_file(self):
+        """ Internal function to create a dummy config file if none is found """
+
         config = ConfigParser.ConfigParser()
         config.add_section('gmail')
         config.set('gmail', 'host', 'imap.gmail.com')
