@@ -119,10 +119,17 @@ class Server:
                 print '[%s]: %s' % (header_from, header_subject)
         
                 for part in mail.walk():
+                    # if mail is not multipart, i.e. only plain text
                     if part.get_content_maintype() == 'multipart':
-                        continue
+                        continue                   
+                    # if no explicit attachments unless they're inline
                     if part.get('Content-Disposition') is None:
+                        pass
+                    # if non-graphic inline data
+                    if not 'image/' in part.get('Content-Type'):
                         continue
+
+                    # only then we can save this mail part
                     self._save_part(part, mail)
   
     def _save_part(self, part, mail):
@@ -134,14 +141,19 @@ class Server:
 
         if not hasattr(self, "seq"):
             self.seq = 0
-    
+        
         filename = decode_header(part.get_filename()).pop(0)[0].decode('iso-8859-1').encode('utf-8')
-        if filename is None:
-            filename = 'attachment-%06d.bin' % (self.seq)
-        self.seq += 1
+       
+        # we check if None in filename instead of just if it is None
+        # because of the data decode_header returns to us
+        if 'None' in filename:
+            filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
+            if filename is None:
+                filename = 'attachment-%06d.data' %(self.seq)
+                self.seq += 1
         
         header_date = parsedate(mail['date'])
-        header_date = '%s-%s-%s_%s:%s:%s_' % (header_date[0],
+        header_date = '%s-%s-%s_%s-%s-%s_' % (header_date[0],
                                               header_date[1],
                                               header_date[2],
                                               header_date[3],
