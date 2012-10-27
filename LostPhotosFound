@@ -79,7 +79,7 @@ class Server:
         # that's why we only support gmail
         # for other mail services we'd have to translate the custom
         # search to actual IMAP queries, thus no X-GM-RAW cookie to us
-        criteria = 'X-GM-RAW "has:attachment filename:(jpg OR jpeg OR gif OR png OR tiff OR tif OR ico OR xbm OR bmp)"'
+        criteria = 'X-GM-RAW "has:attachment filename:(jpg OR jpeg OR gif OR png OR tiff OR tif OR ico OR xbm OR bmp OR jfif OR svg OR jpe OR ief OR cod OR ras OR cmx OR pnm OR pbm OR pgm OR ppm OR rgb OR xpm OR xwd)"'
         try:
             messages = self._server.search([criteria])
         except:
