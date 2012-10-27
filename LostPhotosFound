@@ -136,7 +136,7 @@ class Server:
             self.seq = 0
     
         filename = decode_header(part.get_filename()).pop(0)[0].decode('iso-8859-1').encode('utf-8')
-        if not filename:
+        if filename is None:
             filename = 'attachment-%06d.bin' % (self.seq)
         self.seq += 1
         
