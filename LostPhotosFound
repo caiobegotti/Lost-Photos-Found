@@ -159,7 +159,7 @@ class Server:
         if 'None' in filename:
             filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
             if filename is None:
-                filename = 'attachment-%06d.data' %(self.seq)
+                filename = 'attachment-%06d.data' % (self.seq)
                 self.seq += 1
         
         header_date = parsedate(mail['date'])
