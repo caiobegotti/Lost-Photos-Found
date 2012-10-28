@@ -157,9 +157,6 @@ class Server:
                 # all parts of mail processed, add it to the index
                 self._index[msgid] = msgid
 
-        # sync index and close connection
-        self._close()
-
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
 
@@ -211,7 +208,7 @@ class Server:
                     message = 'Failed when saving attachment: %s' % (saved)
                     raise Exception(message)
     
-    def _close(self):
+    def close(self):
         """ Gracefully closes and logs out of the IMAP server """
 
         self._index.sync()
@@ -283,6 +280,7 @@ if __name__ == "__main__":
                   password,
                   debug=False)
     imap.lostphotosfound()
+    imap.close()
 
     print 'All done!'
     sys.exit()
