@@ -166,8 +166,15 @@ class Server:
         if not hasattr(self, "seq"):
             self.seq = 0
         
-        filename = decode_header(part.get_filename()).pop(0)[0].decode('iso-8859-1').encode('utf-8')
-       
+        # string in [0], charset in [1]
+        # besides, we should just call a generic decoding
+        # function for any header field we need to read...
+        filename = decode_header(part.get_filename())
+        if filename[0][1] is None:
+            filename = filename[0][0].decode('iso-8859-1').encode('utf-8')
+        else:
+            filename = filename[0][0].decode(filename[0][1]).encode('utf-8')
+            
         # we check if None in filename instead of just if it is None
         # because of the data decode_header returns to us
         if 'None' in filename:
