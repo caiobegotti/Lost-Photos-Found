@@ -37,7 +37,7 @@ class Server:
     save them locally with a timestamp.
 
     """
-    def __init__(self, host, debug=False):
+    def __init__(self, host, username, password, debug=False):
         """ Server class __init__ which expects an IMAP host to connect to
 
         @param host: gmail's default server is fine: imap.gmail.com
@@ -56,7 +56,9 @@ class Server:
         # create an index to avoid unnecessary redownloading
         self._index = shelve.open('index', writeback=True)
 
-    def login(self, username, password):
+        self._login(username, password)
+
+    def _login(self, username, password):
         """ Login to the IMAP server and selects the all mail folder
        
         @param username: your gmail account (i.e. obama@gmail.com)
@@ -154,6 +156,9 @@ class Server:
                 # all parts of mail processed, add it to the index
                 self._index[msgid] = msgid
 
+        # sync index and close connection
+        self._close()
+
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
 
@@ -205,7 +210,7 @@ class Server:
                     message = 'Failed when saving attachment: %s' % (saved)
                     raise Exception(message)
     
-    def close(self):
+    def _close(self):
         """ Gracefully closes and logs out of the IMAP server """
 
         self._index.sync()
@@ -272,10 +277,11 @@ if __name__ == "__main__":
     username = config.get('gmail', 'username')
     password = config.get('gmail', 'password')
 
-    imap = Server(host, debug=False)
-    imap.login(username, password)
+    imap = Server(host,
+                  username,
+                  password,
+                  debug=False)
     imap.lostphotosfound()
-    imap.close()
 
     print 'All done!'
     sys.exit()
