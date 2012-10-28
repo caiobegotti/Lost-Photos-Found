@@ -110,24 +110,11 @@ class Server:
                 mail = message_from_string(msgdata[data]['RFC822'])
                 if mail.get_content_maintype() != 'multipart':
                     continue
+
+                # logging
+                header = self._header_decoder(mail)
+                print '[%s]: %s' % (header[0], header[1])
                 
-                # this whole mess up to the print statement
-                # is only for debugging purposes, is it worth it? :-(
-                header_from = mail["From"]
-                if not decode_header(header_from).pop(0)[1]:
-                    header_from = decode_header(header_from).pop(0)[0].decode('iso-8859-1').encode('utf-8')
-                else:
-                    header_from = decode_header(header_from).pop(0)[0].decode(decode_header(header_from).pop(0)[1]).encode('utf-8')
-                
-                header_subject = mail["Subject"]
-                if not decode_header(header_subject).pop(0)[1]:
-                    header_subject = decode_header(header_subject).pop(0)[0].decode('iso-8859-1').encode('utf-8')
-                else:
-                    header_subject = decode_header(header_subject).pop(0)[0].decode(decode_header(header_subject).pop(0)[1]).encode('utf-8')
-               
-                # more debugging
-                print '[%s]: %s' % (header_from, header_subject)
-        
                 for part in mail.walk():
                     # if mail is not multipart, i.e. only plain text
                     if part.get_content_maintype() == 'multipart':
@@ -141,7 +128,34 @@ class Server:
 
                     # only then we can save this mail part
                     self._save_part(part, mail)
-  
+
+    def _header_decoder(self, mail):
+        """ Internal function to print header logs, subject and from fields
+
+        @param mail: the mail object to get the headers from
+        """
+
+        header_from = decode_header(mail['From'])
+        header_subject = decode_header(mail['Subject'])
+
+        # string in [0], charset in [1]
+        if header_from[0][1] is None:
+            header_from = header_from[0][0].decode(
+                          'iso-8859-1').encode('utf-8')
+        else:
+            header_from = header_from[0][0].decode(
+                          header_from[0][1]).encode('utf-8')
+        
+        # string in [0], charset in [1]
+        if header_subject[0][1] is None:
+            header_subject = header_subject[0][0].decode(
+                             'iso-8859-1').encode('utf-8')
+        else:
+            header_subject = header_subject[0][0].decode(
+                             header_subject[0][1]).encode('utf-8')
+       
+        return (header_from, header_subject)
+ 
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
 
