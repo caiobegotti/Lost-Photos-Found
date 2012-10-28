@@ -112,8 +112,8 @@ class Server:
                     continue
 
                 # logging
-                header_from = self._charset_decoder(decode_header(mail['From']))
-                header_subject = self._charset_decoder(decode_header(mail['Subject']))
+                header_from = _charset_decoder(decode_header(mail['From']))
+                header_subject = _charset_decoder(decode_header(mail['Subject']))
                 print '[%s]: %s' % (header_from, header_subject)
                 
                 for part in mail.walk():
@@ -130,20 +130,6 @@ class Server:
                     # only then we can save this mail part
                     self._save_part(part, mail)
 
-    def _charset_decoder(self, header):
-        """ Internal function to decode header charsets of subject, from, filenam etc
-
-        @param mail: the result of a decode_header() from the mail object
-        """
-
-        # string in [0], charset in [1]
-        if header[0][1] is None:
-            header = header[0][0].decode('iso-8859-1').encode('utf-8')
-        else:
-            header = header[0][0].decode(header[0][1]).encode('utf-8')
-        
-        return header
- 
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
 
@@ -156,7 +142,7 @@ class Server:
         
         # we check if None in filename instead of just if it is None
         # because of the type of data decode_header returns to us
-        header_filename = self._charset_decoder(decode_header(part.get_filename()))
+        header_filename = _charset_decoder(decode_header(part.get_filename()))
 
         if 'None' in header_filename:
             header_filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
@@ -238,6 +224,20 @@ class Config:
         print '\nPlease edit your config file %s\n' % (self._file)
         sys.exit()
 
+def _charset_decoder(header):
+    """ Internal function to decode header charsets of subject, from, filenam etc
+
+    @param mail: the result of a decode_header() from the mail object
+    """
+
+    # string in [0], charset in [1]
+    if header[0][1] is None:
+        header = header[0][0].decode('iso-8859-1').encode('utf-8')
+    else:
+        header = header[0][0].decode(header[0][1]).encode('utf-8')
+    
+    return header
+ 
 if __name__ == "__main__":
     config = Config()
     host = config.get('gmail', 'host')
