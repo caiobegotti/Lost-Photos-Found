@@ -45,12 +45,13 @@ class Server:
 
         if not host:
             raise Exception('Missing IMAP host parameter in your config')
+
         try:
-            # isn't it ugly to have so many code inside a try?
             self._server = IMAPClient(host, use_uid=True, ssl=True)
-            setattr(self._server, 'debug', debug)
         except:
             raise Exception('Could not successfully connect to the IMAP host')
+
+        setattr(self._server, 'debug', debug)
 
         # create an index to avoid unnecessary redownloading
         self._index = shelve.open('index', writeback=True)
