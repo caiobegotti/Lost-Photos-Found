@@ -74,17 +74,21 @@ class Server:
         except:
             raise Exception('Cannot login, check username/password, are you using 2-factor auth?')
 
+        # this is how we get the all mail folder even if the user's
+        # gmail interface is in another language, not in english
         if not self._server.folder_exists(all_mail):
             for folder in self._server.xlist_folders():
                 labels = folder[0]
                 if 'AllMail' in labels[-1]:
                     all_mail = folder[2]
-    
+
         self._server.select_folder(all_mail)
 
     def _filter_messages(self):
         """ Filter mail to only parse ones containing images """
 
+        # creates a list of all types of image files to search for,
+        # even though we have no idea if gmail supports them or what
         mimetypes.init()
         mimes = []
         for ext in mimetypes.types_map:
@@ -109,6 +113,7 @@ class Server:
         """ The actual program is here, say. Call it and it will start saving the images """
 
         messages = self._filter_messages()
+
         for msg in messages:
             # FIXME: this looks terrible, awful
             idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
@@ -118,9 +123,10 @@ class Server:
             if msgid in self._index.keys():
                 continue
 
+            # if it hasn't, fetch it and iterate through its parts
             msgdata = self._server.fetch([msg], ['RFC822'])
+
             for data in msgdata:
-                # SEQ is also available
                 mail = message_from_string(msgdata[data]['RFC822'])
                 if mail.get_content_maintype() != 'multipart':
                     continue
@@ -131,7 +137,7 @@ class Server:
                 print '[%s]: %s' % (header_from, header_subject)
                 
                 for part in mail.walk():
-                    # if mail is not multipart, i.e. only plain text
+                    # if it's only plain text, i.e. no images
                     if part.get_content_maintype() == 'multipart':
                         continue                   
                     # if no explicit attachments unless they're inline
@@ -158,16 +164,19 @@ class Server:
             self.seq = 0
         
         # we check if None in filename instead of just if it is None
-        # because of the type of data decode_header returns to us
+        # due to the type of data decode_header returns to us
         header_filename = _charset_decoder(decode_header(part.get_filename()))
 
+        # i.e. some inline attachments have no filename field in the header
+        # so we have to hack around it and get the name field
         if 'None' in header_filename:
             header_filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
             if header_filename is None:
                 # we should hopefully never reach this
                 header_filename = 'attachment-%06d.data' % (self.seq)
                 self.seq += 1
-        
+
+        # 2012-10-28_19-15-22 (Y-M-D_H-M-S)
         header_date = parsedate(mail['date'])
         header_date = '%s-%s-%s_%s-%s-%s_' % (header_date[0],
                                               header_date[1],
@@ -176,7 +185,8 @@ class Server:
                                               header_date[4],
                                               header_date[5])
         filename = header_date + header_filename
-    
+
+        # we should create it in the documents folder
         username = config.get('gmail', 'username')
         if not os.path.isdir(username):
             os.mkdir(username)
@@ -197,6 +207,8 @@ class Server:
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
 
+        self._index.sync()
+        self._index.close()
         self._server.close_folder()
         self._server.logout()
     
