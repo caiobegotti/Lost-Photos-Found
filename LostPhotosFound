@@ -112,8 +112,9 @@ class Server:
                     continue
 
                 # logging
-                header = self._header_decoder(mail)
-                print '[%s]: %s' % (header[0], header[1])
+                header_from = self._charset_decoder(decode_header(mail['From']))
+                header_subject = self._charset_decoder(decode_header(mail['Subject']))
+                print '[%s]: %s' % (header_from, header_subject)
                 
                 for part in mail.walk():
                     # if mail is not multipart, i.e. only plain text
@@ -129,32 +130,19 @@ class Server:
                     # only then we can save this mail part
                     self._save_part(part, mail)
 
-    def _header_decoder(self, mail):
-        """ Internal function to print header logs, subject and from fields
+    def _charset_decoder(self, header):
+        """ Internal function to decode header charsets of subject, from, filenam etc
 
-        @param mail: the mail object to get the headers from
+        @param mail: the result of a decode_header() from the mail object
         """
 
-        header_from = decode_header(mail['From'])
-        header_subject = decode_header(mail['Subject'])
-
         # string in [0], charset in [1]
-        if header_from[0][1] is None:
-            header_from = header_from[0][0].decode(
-                          'iso-8859-1').encode('utf-8')
+        if header[0][1] is None:
+            header = header[0][0].decode('iso-8859-1').encode('utf-8')
         else:
-            header_from = header_from[0][0].decode(
-                          header_from[0][1]).encode('utf-8')
+            header = header[0][0].decode(header[0][1]).encode('utf-8')
         
-        # string in [0], charset in [1]
-        if header_subject[0][1] is None:
-            header_subject = header_subject[0][0].decode(
-                             'iso-8859-1').encode('utf-8')
-        else:
-            header_subject = header_subject[0][0].decode(
-                             header_subject[0][1]).encode('utf-8')
-       
-        return (header_from, header_subject)
+        return header
  
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
@@ -166,21 +154,15 @@ class Server:
         if not hasattr(self, "seq"):
             self.seq = 0
         
-        # string in [0], charset in [1]
-        # besides, we should just call a generic decoding
-        # function for any header field we need to read...
-        filename = decode_header(part.get_filename())
-        if filename[0][1] is None:
-            filename = filename[0][0].decode('iso-8859-1').encode('utf-8')
-        else:
-            filename = filename[0][0].decode(filename[0][1]).encode('utf-8')
-            
         # we check if None in filename instead of just if it is None
-        # because of the data decode_header returns to us
-        if 'None' in filename:
-            filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
-            if filename is None:
-                filename = 'attachment-%06d.data' % (self.seq)
+        # because of the type of data decode_header returns to us
+        header_filename = self._charset_decoder(decode_header(part.get_filename()))
+
+        if 'None' in header_filename:
+            header_filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
+            if header_filename is None:
+                # we should hopefully never reach this
+                header_filename = 'attachment-%06d.data' % (self.seq)
                 self.seq += 1
         
         header_date = parsedate(mail['date'])
@@ -190,7 +172,7 @@ class Server:
                                               header_date[3],
                                               header_date[4],
                                               header_date[5])
-        filename = header_date + filename
+        filename = header_date + header_filename
     
         username = config.get('gmail', 'username')
         if not os.path.isdir(username):
