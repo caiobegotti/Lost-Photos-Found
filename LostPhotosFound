@@ -34,7 +34,7 @@ class Server:
     save them locally with a timestamp.
 
     """
-    def __init__(self, host):
+    def __init__(self, host, debug=False):
         """ Server class __init__ which expects an IMAP host to connect to
 
         @param host: gmail's default server is fine: imap.gmail.com
@@ -45,7 +45,7 @@ class Server:
         try:
             # isn't it ugly to have so many code inside a try?
             self._server = IMAPClient(host, use_uid=True, ssl=True)
-            setattr(self._server, 'debug', False)
+            setattr(self._server, 'debug', debug)
         except:
             raise Exception('Could not successfully connect to the IMAP host')
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     username = config.get('gmail', 'username')
     password = config.get('gmail', 'password')
 
-    imap = Server(host)
+    imap = Server(host, debug=True)
     imap.login(username, password)
     imap.lostphotosfound()
     imap.close()
