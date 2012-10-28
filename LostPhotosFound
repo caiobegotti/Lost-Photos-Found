@@ -170,14 +170,12 @@ class Server:
         saved = os.path.join(username, filename)
         if not os.path.isfile(saved):
             with open(saved, 'wb') as imagefile:
-                # for some reason get_payload fails sometimes
-                # it is suspected to happen when images are not
-                # really multipart attachments but inline instead?
                 try:
                     payload = part.get_payload(decode=True)
                     imagefile.write(payload)
                 except:
-                    pass
+                    message = 'Failed when saving attachment: %s' % (saved)
+                    raise Exception(message)
     
     def close(self):
         """ Gracefully closes and logs out of the IMAP server """
@@ -244,7 +242,7 @@ if __name__ == "__main__":
     username = config.get('gmail', 'username')
     password = config.get('gmail', 'password')
 
-    imap = Server(host, debug=True)
+    imap = Server(host, debug=False)
     imap.login(username, password)
     imap.lostphotosfound()
     imap.close()
