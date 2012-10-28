@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# code is under GPLv2
-# <caio1982@gmail.com>
 
-"""
+__license__   = 'GPLv2'
+__author__    = 'Caio Begotti'
+__email__     = 'caio1982@gmail.com'
+__credits__   = ['Claudio Matsuoka']
 
-LostPhotosFound...
-
-"""
+"""LostPhotosFound, Linux version of the LostPhotos application for Mac/Windows"""
 
 import os
 import sys
@@ -30,17 +29,20 @@ from imapclient import IMAPClient
 import ConfigParser
 
 class Server:
-    """ Server class to fetch and filter data
+    """
+    Server class to fetch and filter data
 
     Connects to the IMAP server, search according to a criteria,
     fetch all attachments of the mails matching the criteria and
-    save them locally with a timestamp.
-
+    save them locally with a timestamp
     """
     def __init__(self, host, username, password, debug=False):
-        """ Server class __init__ which expects an IMAP host to connect to
+        """
+        Server class __init__ which expects an IMAP host to connect to
 
         @param host: gmail's default server is fine: imap.gmail.com
+        @param username: your gmail account (i.e. obama@gmail.com)
+        @param password: we highly recommend you to use 2-factor auth here
         """
 
         if not host:
@@ -60,7 +62,8 @@ class Server:
         self._login(username, password)
 
     def _login(self, username, password):
-        """ Login to the IMAP server and selects the all mail folder
+        """
+        Login to the IMAP server and selects the all mail folder
        
         @param username: your gmail account (i.e. obama@gmail.com)
         @param password: we highly recommend you to use 2-factor auth here
@@ -89,7 +92,7 @@ class Server:
         self._server.select_folder(all_mail)
 
     def _filter_messages(self):
-        """ Filter mail to only parse ones containing images """
+        """Filter mail to only parse ones containing images"""
 
         # creates a list of all types of image files to search for,
         # even though we have no idea if gmail supports them or what
@@ -114,7 +117,7 @@ class Server:
         return messages
  
     def lostphotosfound(self):
-        """ The actual program is here, say. Call it and it will start saving the images """
+        """The actual program, which fetchs the mails and all its parts attachments"""
 
         messages = self._filter_messages()
 
@@ -158,7 +161,8 @@ class Server:
                 self._index[msgid] = msgid
 
     def _save_part(self, part, mail):
-        """ Internal function to decode attachment filenames and save all them
+        """
+        Internal function to decode attachment filenames and save them all
 
         @param mail: the mail object from message_from_string so it can checks its date
         @param part: the part object after a mail.walk() to get multiple attachments
@@ -209,7 +213,7 @@ class Server:
                     raise Exception(message)
     
     def close(self):
-        """ Gracefully closes and logs out of the IMAP server """
+        """Gracefully sync/close the index and disconnects from the IMAP server"""
 
         self._index.sync()
         self._index.close()
@@ -217,11 +221,11 @@ class Server:
         self._server.logout()
     
 class Config:
-    """ Configuration file manager
+    """
+    Configuration file manager
 
-    Locate, open and read configuration file options. Create a template
-    if no configuration file is found.
-
+    Locate, open and read configuration file options, creates a template
+    if no configuration file is found (default is ~/.LostPhotosFound/config)
     """
     def __init__(self):
         self._dir = os.path.expanduser('~/.LostPhotosFound')
@@ -237,11 +241,16 @@ class Config:
         self._config.read(self._file)
 
     def get(self, section, option):
-        """ Get and return a given config field, i.e. username """
+        """
+        Get and return a given config field, i.e. username
+
+        @param section: likely to be your mail service, i.e. gmail
+        @param option: the field you want to retrieve from the config
+        """
         return self._config.get(section, option)
 
     def _create_file(self):
-        """ Internal function to create a dummy config file if none is found """
+        """Internal function to create a dummy config file if none is found"""
 
         config = ConfigParser.ConfigParser()
         config.add_section('gmail')
@@ -256,9 +265,10 @@ class Config:
         sys.exit()
 
 def _charset_decoder(header):
-    """ Internal function to decode header charsets of subject, from, filenam etc
+    """
+    Internal function to decode header charsets of subject, from, filenam etc
 
-    @param mail: the result of a decode_header() from the mail object
+    @param header: the result of a decode_header() in the mail object
     """
 
     # string in [0], charset in [1]
