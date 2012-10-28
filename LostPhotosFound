@@ -15,6 +15,9 @@ import sys
 # for the mime list (all images extensions)
 import mimetypes
 
+# for the index
+import shelve
+
 # to build the mail object and pickle fields
 from email import message_from_string
 from email.header import decode_header
@@ -48,6 +51,9 @@ class Server:
             setattr(self._server, 'debug', debug)
         except:
             raise Exception('Could not successfully connect to the IMAP host')
+
+        # create an index to avoid unnecessary redownloading
+        self._index = shelve.open('index', writeback=True)
 
     def login(self, username, password):
         """ Login to the IMAP server and selects the all mail folder
@@ -104,6 +110,14 @@ class Server:
 
         messages = self._filter_messages()
         for msg in messages:
+            # FIXME: this looks terrible, awful
+            idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
+            msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
+
+            # mail has been processed in the past, skip it
+            if msgid in self._index.keys():
+                continue
+
             msgdata = self._server.fetch([msg], ['RFC822'])
             for data in msgdata:
                 # SEQ is also available
@@ -126,9 +140,12 @@ class Server:
                     # if non-graphic inline data
                     if not 'image/' in part.get_content_type():
                         continue
-
+                    
                     # only then we can save this mail part
                     self._save_part(part, mail)
+
+                # all parts of mail processed, add it to the index
+                self._index[msgid] = msgid
 
     def _save_part(self, part, mail):
         """ Internal function to decode attachment filenames and save all them
@@ -166,7 +183,7 @@ class Server:
     
         # logging complement
         print '\t...%s' % (filename)
-    
+
         saved = os.path.join(username, filename)
         if not os.path.isfile(saved):
             with open(saved, 'wb') as imagefile:
