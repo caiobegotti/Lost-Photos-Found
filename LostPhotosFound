@@ -54,7 +54,8 @@ class Server:
         setattr(self._server, 'debug', debug)
 
         # create an index to avoid unnecessary redownloading
-        self._index = shelve.open('index', writeback=True)
+        index = '.index_%s' % (username)
+        self._index = shelve.open(index, writeback=True)
 
         self._login(username, password)
 
