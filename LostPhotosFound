@@ -184,6 +184,10 @@ class Server:
                 header_filename = 'attachment-%06d.data' % (self.seq)
                 self.seq += 1
 
+        # sanitize it
+        punct = '!"#$&\'*+/;<>?[\]^`{|}~'
+        header_filename = header_filename.translate(None, punct)
+
         # 2012-10-28_19-15-22 (Y-M-D_H-M-S)
         header_date = parsedate(mail['date'])
         header_date = '%s-%s-%s_%s-%s-%s_' % (header_date[0],
