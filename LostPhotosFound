@@ -4,7 +4,7 @@
 __license__   = 'GPLv2'
 __author__    = 'Caio Begotti'
 __email__     = 'caio1982@gmail.com'
-__credits__   = ['Claudio Matsuoka']
+__credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 """LostPhotosFound, Linux version of the LostPhotos application for Mac/Windows"""
 
