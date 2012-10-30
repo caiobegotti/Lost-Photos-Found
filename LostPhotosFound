@@ -10,6 +10,7 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 import os
 import sys
+import chardet
 
 # for the mime list (all images extensions)
 import mimetypes
@@ -122,12 +123,16 @@ class Server:
         messages = self._filter_messages()
 
         for msg in messages:
-            # FIXME: this looks terrible, awful
-            idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
+            try:
+                idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
+            except:
+                raise Exception('Could not fetch the message ID, server did not respond')
+
             msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
 
             # mail has been processed in the past, skip it
             if msgid in self._index.keys():
+                print 'Skipping X-GM-MSDID %s' % (msgid)
                 continue
 
             # if it hasn't, fetch it and iterate through its parts
@@ -139,8 +144,8 @@ class Server:
                     continue
 
                 # logging
-                header_from = _charset_decoder(decode_header(mail['From']))
-                header_subject = _charset_decoder(decode_header(mail['Subject']))
+                header_from = _charset_decoder(mail['From'])
+                header_subject = _charset_decoder(mail['Subject'])
                 print '[%s]: %s' % (header_from, header_subject)
                 
                 for part in mail.walk():
@@ -173,16 +178,16 @@ class Server:
         
         # we check if None in filename instead of just if it is None
         # due to the type of data decode_header returns to us
-        header_filename = _charset_decoder(decode_header(part.get_filename()))
+        header_filename = _charset_decoder(part.get_filename())
 
         # i.e. some inline attachments have no filename field in the header
         # so we have to hack around it and get the name field
         if 'None' in header_filename:
             header_filename = part.get('Content-Type').split('name=')[-1].replace('"', '')
-            if header_filename is None:
-                # we should hopefully never reach this
-                header_filename = 'attachment-%06d.data' % (self.seq)
-                self.seq += 1
+        elif not header_filename[0][0] or header_filename[0][0] is None:
+            # we should hopefully never reach this, attachments would be 'noname' in gmail
+            header_filename = 'attachment-%06d.data' % (self.seq)
+            self.seq += 1
 
         # sanitize it
         punct = '!"#$&\'*+/;<>?[\]^`{|}~'
@@ -275,12 +280,23 @@ def _charset_decoder(header):
     @param header: the result of a decode_header() in the mail object
     """
 
+    fallback_header = []
+    # make it a humand-readable string
+    try:
+        header = decode_header(header)
+    except UnicodeEncodeError as e:
+        forced = (header.encode('utf-8'), 'utf-8')
+        fallback_header.append(forced)
+        header = fallback_header
+
     # string in [0], charset in [1]
     if header[0][1] is None:
-        header = header[0][0].decode('iso-8859-1').encode('utf-8')
+        guessed = chardet.detect(header[0][0])['encoding']
+        if guessed is not None:
+            header = header[0][0].decode(guessed).encode('utf-8')
     else:
         header = header[0][0].decode(header[0][1]).encode('utf-8')
-    
+
     return header
  
 if __name__ == "__main__":
