@@ -36,4 +36,5 @@ TODO
 
 - create a simple interface with pyqt like an album frame (QFileSystemWatcher?)
 - CLI options for host, username, password, folder, criteria and attachment size
+- write a generic indexing function, and put the indexes in the "app folder"
 - better (real) debug logging :-)
