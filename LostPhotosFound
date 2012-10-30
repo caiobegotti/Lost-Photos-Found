@@ -11,6 +11,9 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 import os
 import sys
 
+# to avoid image duplicates
+import hashlib
+
 # for header charset detection
 import chardet
 
@@ -60,7 +63,9 @@ class Server:
 
         # create an index to avoid unnecessary redownloading
         index = '.index_%s' % (username)
+        hashes = '.hashes_%s' % (username)
         self._index = shelve.open(index, writeback=True)
+        self._hashes = shelve.open(hashes, writeback=True)
 
         self._login(username, password)
 
@@ -218,16 +223,30 @@ class Server:
             with open(saved, 'wb') as imagefile:
                 try:
                     payload = part.get_payload(decode=True)
-                    imagefile.write(payload)
                 except:
-                    message = 'Failed when saving attachment: %s' % (saved)
+                    message = 'Failed when downloading attachment: %s' % (saved)
                     raise Exception(message)
+
+                hash = hashlib.sha1(payload).hexdigest()
+                # gmail loves to duplicate attachments in replies
+                if not hash in self._hashes.keys():
+                    try:
+                        imagefile.write(payload)
+                    except:
+                        message = 'Failed writing attachment to file: %s' % (saved)
+                        raise Exception(message)
+                    self._hashes[hash] = hash
+                else:
+                    print 'Duplicated attachment %s' % (saved)
+                    pass
     
     def close(self):
-        """Gracefully sync/close the index and disconnects from the IMAP server"""
+        """Gracefully sync/close indexes and disconnects from the IMAP server"""
 
         self._index.sync()
         self._index.close()
+        self._hashes.sync()
+        self._hashes.close()
         self._server.close_folder()
         self._server.logout()
     
