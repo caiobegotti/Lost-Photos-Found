@@ -10,6 +10,8 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 import os
 import sys
+
+# for header charset detection
 import chardet
 
 # for the mime list (all images extensions)
