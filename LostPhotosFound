@@ -229,16 +229,16 @@ class Server:
 
                 hash = hashlib.sha1(payload).hexdigest()
                 # gmail loves to duplicate attachments in replies
-                if hash in self._hashes.keys():
-                    print 'Duplicated attachment %s' % (saved)
-                    pass
-                else:
+                if hash not in self._hashes.keys():
                     try:
                         imagefile.write(payload)
                     except:
                         message = 'Failed writing attachment to file: %s' % (saved)
                         raise Exception(message)
                     self._hashes[hash] = hash
+                else:
+                    print 'Duplicated attachment %s (%s)' % (saved, hash)
+                    pass
     
     def close(self):
         """Gracefully sync/close indexes and disconnects from the IMAP server"""
