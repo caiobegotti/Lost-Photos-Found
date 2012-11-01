@@ -10,13 +10,11 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 import sys
 
-# the server class and the app method
-from lib.server import _charset_decoder
-from lib.server import Server
+from lostphotosfound.utils import _charset_decoder
+from lostphotosfound.utils import _app_folder
 
-# config class and its methods
-from lib.config import _app_folder
-from lib.config import Config
+from lostphotosfound.server import Server
+from lostphotosfound.config import Config
 
 if __name__ == "__main__":
     config = Config()
