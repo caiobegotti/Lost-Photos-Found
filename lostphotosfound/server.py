@@ -211,7 +211,7 @@ class Server:
         userdir = os.path.expanduser('~/LostPhotosFound')
         savepath = os.path.join(userdir, username)
         if not os.path.isdir(savepath):
-            os.mkdir(savepath)
+            os.makedirs(savepath)
     
         # logging complement
         print '\t...%s' % (filename)

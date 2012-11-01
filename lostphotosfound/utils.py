@@ -14,7 +14,7 @@ def _app_folder():
     """
     dir = os.path.expanduser('~/.LostPhotosFound')
     if not os.path.isdir(dir):
-        os.mkdir(dir, 0700)
+        os.makedirs(dir, 0700)
     return dir
 
 def _charset_decoder(header):
