@@ -216,13 +216,15 @@ class Server:
 
         # we should create it in the documents folder
         username = config.get('gmail', 'username')
-        if not os.path.isdir(username):
-            os.mkdir(username)
+        userdir = os.path.expanduser('~/LostPhotosFound')
+        savepath = os.path.join(userdir, username)
+        if not os.path.isdir(savepath):
+            os.mkdir(savepath)
     
         # logging complement
         print '\t...%s' % (filename)
 
-        saved = os.path.join(username, filename)
+        saved = os.path.join(savepath, filename)
         if not os.path.isfile(saved):
             with open(saved, 'wb') as imagefile:
                 try:
