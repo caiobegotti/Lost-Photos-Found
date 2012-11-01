@@ -10,6 +10,8 @@ import sys
 # for configuration file
 import ConfigParser
 
+from lostphotosfound.utils import _app_folder
+
 class Config:
     """
     Configuration file manager
@@ -49,12 +51,3 @@ class Config:
 
         print '\nPlease edit your config file %s\n' % (self._file)
         sys.exit()
-
-def _app_folder():
-    """
-    Internal function to return the app folder in user's home in a multi-OS way
-    """
-    dir = os.path.expanduser('~/.LostPhotosFound')
-    if not os.path.isdir(dir):
-        os.mkdir(dir, 0700)
-    return dir

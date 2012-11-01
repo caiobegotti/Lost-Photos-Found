@@ -9,9 +9,6 @@ import sys
 # to avoid image duplicates
 import hashlib
 
-# for header charset detection
-import chardet
-
 # for the mime list (all images extensions)
 import mimetypes
 
@@ -20,14 +17,13 @@ import shelve
 
 # to build the mail object and pickle fields
 from email import message_from_string
-from email.header import decode_header
 from email.utils import parsedate
 
 # the working man (should we connect to IMAP as a read-only client btw?)
 from imapclient import IMAPClient
 
-# config class and its methods
-from lib.config import _app_folder
+from lostphotosfound.utils import _app_folder
+from lostphotosfound.utils import _charset_decoder
 
 class Server:
     """
@@ -251,29 +247,3 @@ class Server:
         self._hashes.close()
         self._server.close_folder()
         self._server.logout()
-    
-def _charset_decoder(header):
-    """
-    Internal function to decode header charsets of subject, from, filenam etc
-
-    @param header: the result of a decode_header() in the mail object
-    """
-
-    fallback_header = []
-    # make it a humand-readable string
-    try:
-        header = decode_header(header)
-    except UnicodeEncodeError as e:
-        forced = (header.encode('utf-8'), 'utf-8')
-        fallback_header.append(forced)
-        header = fallback_header
-
-    # string in [0], charset in [1]
-    if header[0][1] is None:
-        guessed = chardet.detect(header[0][0])['encoding']
-        if guessed is not None:
-            header = header[0][0].decode(guessed).encode('utf-8')
-    else:
-        header = header[0][0].decode(header[0][1]).encode('utf-8')
-
-    return header
