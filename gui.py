@@ -3,20 +3,25 @@
 # same license, author and
 # credits of the main script
 
-#@button.clicked.connect
-#def myCallback():
-
 import sys
+import os
 
-from PyQt4 import QtCore, QtGui, Qt, QtDeclarative
+from PyQt4 import QtCore
+from PyQt4 import QtGui
 
-app = QtGui.QApplication(sys.argv)
+from lostphotosfound.config import Config
 
-view = QtDeclarative.QDeclarativeView()
-view.setSource(QtCore.QUrl('ui.qml'))
-#view.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
-view.setGeometry(100, 100, 400, 240)
-view.show()
-sys.exit(app.exec_()) 
+app = QtCore.QCoreApplication(sys.argv)
 
+def monitoredChange():
+    print 'ACK'
+
+config = Config()
+userfolder = config.get('gmail', 'username')
+filepath = os.path.expanduser('~/LostPhotosFound/') + userfolder
+monitoredPath = [filepath]
+
+fswatcher = QtCore.QFileSystemWatcher(monitoredPath)
+fswatcher.directoryChanged.connect(monitoredChange)
+
+sys.exit(app.exec_())
