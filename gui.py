@@ -19,9 +19,15 @@ def monitoredChange():
 config = Config()
 userfolder = config.get('gmail', 'username')
 filepath = os.path.expanduser('~/LostPhotosFound/') + userfolder
-monitoredPath = [filepath]
 
+monitoredPath = [filepath]
 fswatcher = QtCore.QFileSystemWatcher(monitoredPath)
 fswatcher.directoryChanged.connect(monitoredChange)
+
+filelist = os.listdir(filepath)
+filelist = filter(lambda x: not os.path.isdir(x), filelist)
+
+newest = max(filelist, key=lambda x: os.path.getmtime(filepath + '/' + x))
+newest = filepath + '/' + newest
 
 sys.exit(app.exec_())
