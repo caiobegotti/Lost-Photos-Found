@@ -12,10 +12,10 @@ def _app_folder():
     """
     Internal function to return the app folder in user's home in a multi-OS way
     """
-    dir = os.path.expanduser('~/.LostPhotosFound')
-    if not os.path.isdir(dir):
-        os.makedirs(dir, 0700)
-    return dir
+    directory = os.path.expanduser('~/.LostPhotosFound')
+    if not os.path.isdir(directory):
+        os.makedirs(directory, 0700)
+    return directory
 
 def _charset_decoder(header):
     """
@@ -28,7 +28,7 @@ def _charset_decoder(header):
     # make it a humand-readable string
     try:
         header = decode_header(header)
-    except UnicodeEncodeError as e:
+    except UnicodeEncodeError:
         forced = (header.encode('utf-8'), 'utf-8')
         fallback_header.append(forced)
         header = fallback_header

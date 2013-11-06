@@ -14,12 +14,12 @@ from lostphotosfound.config import Config
 app = QtGui.QApplication(sys.argv)
 
 def monitoredChange(path):
-    filelist = os.listdir(filepath)
+    filelist = os.listdir(path)
     filelist = filter(lambda x: not os.path.isdir(x), filelist)
-    newest = max(filelist, key=lambda x: os.path.getmtime(filepath + '/' + x))
-    newest = filepath + '/' + newest
+    newest = max(filelist, key=lambda x: os.path.getmtime(path + '/' + x))
+    newest = path + '/' + newest
     pic.setPixmap(QtGui.QPixmap(newest))
-    print 'ACK'
+    print 'ACK', newest
 
 config = Config()
 userfolder = config.get('gmail', 'username')
@@ -34,7 +34,6 @@ window.setGeometry(0, 0, 500, 500)
 pic = QtGui.QLabel(window)
 pic.setGeometry(0, 0, 500, 500)
 pic.setScaledContents(True)
-#pic.setPixmap(QtGui.QPixmap(newest))
 window.show()
 
 sys.exit(app.exec_())

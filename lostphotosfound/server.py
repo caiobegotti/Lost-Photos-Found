@@ -4,7 +4,6 @@
 # credits of the main script
 
 import os
-import sys
 
 # to avoid image duplicates
 import hashlib
@@ -225,17 +224,17 @@ class Server:
                     message = 'Failed when downloading attachment: %s' % (saved)
                     raise Exception(message)
 
-                hash = hashlib.sha1(payload).hexdigest()
+                payload_hash = hashlib.sha1(payload).hexdigest()
                 # gmail loves to duplicate attachments in replies
-                if hash not in self._hashes.keys():
+                if payload_hash not in self._hashes.keys():
                     try:
                         imagefile.write(payload)
                     except:
                         message = 'Failed writing attachment to file: %s' % (saved)
                         raise Exception(message)
-                    self._hashes[hash] = hash
+                    self._hashes[payload_hash] = payload_hash
                 else:
-                    print 'Duplicated attachment %s (%s)' % (saved, hash)
+                    print 'Duplicated attachment %s (%s)' % (saved, payload_hash)
                     os.remove(saved)
     
     def close(self):

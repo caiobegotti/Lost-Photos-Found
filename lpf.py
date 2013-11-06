@@ -6,12 +6,9 @@ __author__    = 'Caio Begotti'
 __email__     = 'caio1982@gmail.com'
 __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
-"""LostPhotosFound, Linux version of the LostPhotos application for Mac/Windows"""
+# LostPhotosFound, Linux version of the LostPhotos application for Mac/Windows
 
 import sys
-
-from lostphotosfound.utils import _charset_decoder
-from lostphotosfound.utils import _app_folder
 
 from lostphotosfound.server import Server
 from lostphotosfound.config import Config
