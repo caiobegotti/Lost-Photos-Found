@@ -141,7 +141,7 @@ class Server:
             msgdata = self._server.fetch([msg], ['RFC822'])
 
             for data in msgdata:
-                mail = message_from_string(msgdata[data]['RFC822'])
+                mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
                 if mail.get_content_maintype() != 'multipart':
                     continue
 
