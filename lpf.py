@@ -26,5 +26,5 @@ if __name__ == "__main__":
     imap.lostphotosfound()
     imap.close()
 
-    print 'All done!'
+    print 'All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)'
     sys.exit()
