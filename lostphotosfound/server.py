@@ -75,22 +75,21 @@ class Server:
         if not username or not password:
             raise Exception('Missing username or password parameters')
 
-        # you may want to hack this to only fetch attachments from a
-        # different exclusive label (assuming you have them in english)
-        all_mail = '[Gmail]/All Mail'
-        
         try:
             self._server.login(username, password)
         except:
             raise Exception('Cannot login, check username/password, are you using 2-factor auth?')
 
-        # this is how we get the all mail folder even if the user's
-        # gmail interface is in another language, not in english
-        if not self._server.folder_exists(all_mail):
-            for folder in self._server.xlist_folders():
-                labels = folder[0]
-                if 'AllMail' in labels[-1]:
-                    all_mail = folder[2]
+        # you may want to hack this to only fetch attachments
+        # from a different exclusive label
+        all_mail = ''
+
+        # the gmails AllMail folder always has the '\\AllMail' flag
+        # regardless which language the interface is
+        if not all_mail:
+            for flags, delimiter, folder_name in self._server.xlist_folders():
+                if u'\\AllMail' in flags:
+                    all_mail = folder_name
 
         self._server.select_folder(all_mail)
 
