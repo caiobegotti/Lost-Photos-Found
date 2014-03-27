@@ -94,6 +94,8 @@ class Server:
                     # fallbacking just to be sure
                     all_mail = '[Gmail]/All Mail'
 
+        # stats logging
+        print "LOG: selecting message folder '%s'" % all_mail
         self._server.select_folder(all_mail)
 
     def _filter_messages(self):
