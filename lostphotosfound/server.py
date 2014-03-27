@@ -82,17 +82,17 @@ class Server:
 
         # you may want to hack this to only fetch attachments
         # from a different exclusive label
-        all_mail = ''
+        all_mail = ""
 
         # gmail's allmail folder always has the '\\AllMail' flag set
         # regardless which language the interface is using
         if not all_mail:
+            all_mail = "[Gmail]/All Mail"
+
             for flags, delimiter, folder_name in self._server.xlist_folders():
                 if u'\\AllMail' in flags:
                     all_mail = folder_name
-                else:
-                    # fallbacking just to be sure
-                    all_mail = '[Gmail]/All Mail'
+                    break
 
         # stats logging
         print "LOG: selecting message folder '%s'" % all_mail
