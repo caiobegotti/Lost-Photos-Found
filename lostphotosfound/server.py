@@ -67,7 +67,7 @@ class Server:
     def _login(self, username, password):
         """
         Login to the IMAP server and selects the all mail folder
-       
+
         @param username: your gmail account (i.e. obama@gmail.com)
         @param password: we highly recommend you to use 2-factor auth here
         """
@@ -82,18 +82,20 @@ class Server:
 
         # you may want to hack this to only fetch attachments
         # from a different exclusive label
-        all_mail = ''
+        all_mail = ""
 
         # gmail's allmail folder always has the '\\AllMail' flag set
         # regardless which language the interface is using
         if not all_mail:
+            all_mail = "[Gmail]/All Mail"
+
             for flags, delimiter, folder_name in self._server.xlist_folders():
                 if u'\\AllMail' in flags:
                     all_mail = folder_name
-                else:
-                    # fallbacking just to be sure
-                    all_mail = '[Gmail]/All Mail'
+                    break
 
+        # stats logging
+        print "LOG: selecting message folder '%s'" % all_mail
         self._server.select_folder(all_mail)
 
     def _filter_messages(self):
@@ -107,7 +109,7 @@ class Server:
             if 'image' in mimetypes.types_map[ext]:
                 mimes.append(ext.replace('.', ''))
         mimelist = ' OR '.join(mimes)
-        
+
         # that's why we only support gmail
         # for other mail services we'd have to translate the custom
         # search to actual IMAP queries, thus no X-GM-RAW cookie for us
@@ -115,12 +117,12 @@ class Server:
         try:
             messages = self._server.search([criteria])
         except:
-            raise Exception('Search criteria return a failure, it must be a valid gmail search')    
+            raise Exception('Search criteria return a failure, it must be a valid gmail search')
 
         # stats logging
         print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)
         return messages
- 
+
     def lostphotosfound(self):
         """The actual program, which fetchs the mails and all its parts attachments"""
 
@@ -151,18 +153,18 @@ class Server:
                 header_from = _charset_decoder(mail['From'])
                 header_subject = _charset_decoder(mail['Subject'])
                 print '[%s]: %s' % (header_from, header_subject)
-                
+
                 for part in mail.walk():
                     # if it's only plain text, i.e. no images
                     if part.get_content_maintype() == 'multipart':
-                        continue                   
+                        continue
                     # if no explicit attachments unless they're inline
                     if part.get('Content-Disposition') is None:
                         pass
                     # if non-graphic inline data
                     if not 'image/' in part.get_content_type():
                         continue
-                    
+
                     # only then we can save this mail part
                     self._save_part(part, mail)
 
@@ -179,7 +181,7 @@ class Server:
 
         if not hasattr(self, "seq"):
             self.seq = 0
-        
+
         # we check if None in filename instead of just if it is None
         # due to the type of data decode_header returns to us
         header_filename = _charset_decoder(part.get_filename())
@@ -213,7 +215,7 @@ class Server:
         savepath = os.path.join(userdir, username)
         if not os.path.isdir(savepath):
             os.makedirs(savepath)
-    
+
         # logging complement
         print '\t...%s' % (filename)
 
@@ -238,7 +240,7 @@ class Server:
                 else:
                     print 'Duplicated attachment %s (%s)' % (saved, payload_hash)
                     os.remove(saved)
-    
+
     def close(self):
         """Gracefully sync/close indexes and disconnects from the IMAP server"""
 
