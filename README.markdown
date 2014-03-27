@@ -25,7 +25,8 @@ Wanna help? Fork it and pick your favorite from the ```TODO``` section below. It
 TODO
 ----
 
+- Use python-keyring instead of handling passwords on our own
 - create a simple interface with pyqt like an album frame (QFileSystemWatcher?)
 - CLI options for host, username, password, folder, criteria and attachment size
-- better (real) debug logging :-)
-- statistics!
+- Better (real) debug logging :-)
+- Statistics!
