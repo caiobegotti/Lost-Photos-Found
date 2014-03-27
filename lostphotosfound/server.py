@@ -84,12 +84,15 @@ class Server:
         # from a different exclusive label
         all_mail = ''
 
-        # the gmails AllMail folder always has the '\\AllMail' flag
-        # regardless which language the interface is
+        # gmail's allmail folder always has the '\\AllMail' flag set
+        # regardless which language the interface is using
         if not all_mail:
             for flags, delimiter, folder_name in self._server.xlist_folders():
                 if u'\\AllMail' in flags:
                     all_mail = folder_name
+                else:
+                    # fallbacking just to be sure
+                    all_mail = '[Gmail]/All Mail'
 
         self._server.select_folder(all_mail)
 
