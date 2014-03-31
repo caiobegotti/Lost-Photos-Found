@@ -123,54 +123,6 @@ class Server:
         print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)
         return messages
 
-    def lostphotosfound(self):
-        """The actual program, which fetchs the mails and all its parts attachments"""
-
-        messages = self._filter_messages()
-
-        for msg in messages:
-            try:
-                idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
-            except:
-                raise Exception('Could not fetch the message ID, server did not respond')
-
-            msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
-
-            # mail has been processed in the past, skip it
-            if msgid in self._index.keys():
-                print 'Skipping X-GM-MSDID %s' % (msgid)
-                continue
-
-            # if it hasn't, fetch it and iterate through its parts
-            msgdata = self._server.fetch([msg], ['RFC822'])
-
-            for data in msgdata:
-                mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
-                if mail.get_content_maintype() != 'multipart':
-                    continue
-
-                # logging
-                header_from = _charset_decoder(mail['From'])
-                header_subject = _charset_decoder(mail['Subject'])
-                print '[%s]: %s' % (header_from, header_subject)
-
-                for part in mail.walk():
-                    # if it's only plain text, i.e. no images
-                    if part.get_content_maintype() == 'multipart':
-                        continue
-                    # if no explicit attachments unless they're inline
-                    if part.get('Content-Disposition') is None:
-                        pass
-                    # if non-graphic inline data
-                    if not 'image/' in part.get_content_type():
-                        continue
-
-                    # only then we can save this mail part
-                    self._save_part(part, mail)
-
-                # all parts of mail processed, add it to the index
-                self._index[msgid] = msgid
-
     def _save_part(self, part, mail):
         """
         Internal function to decode attachment filenames and save them all
@@ -241,8 +193,8 @@ class Server:
                     print 'Duplicated attachment %s (%s)' % (saved, payload_hash)
                     os.remove(saved)
 
-    def close(self):
-        """Gracefully sync/close indexes and disconnects from the IMAP server"""
+    def _cleanup(self):
+        """Gracefully cleans up the mess and leave the server"""
 
         self._index.sync()
         self._index.close()
@@ -250,3 +202,53 @@ class Server:
         self._hashes.close()
         self._server.close_folder()
         self._server.logout()
+
+    def lostphotosfound(self):
+        """The actual program, which fetchs the mails and all its parts attachments"""
+
+        messages = self._filter_messages()
+
+        for msg in messages:
+            try:
+                idfetched = self._server.fetch([msg], ['X-GM-MSGID'])
+            except:
+                raise Exception('Could not fetch the message ID, server did not respond')
+
+            msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
+
+            # mail has been processed in the past, skip it
+            if msgid in self._index.keys():
+                print 'Skipping X-GM-MSDID %s' % (msgid)
+                continue
+
+            # if it hasn't, fetch it and iterate through its parts
+            msgdata = self._server.fetch([msg], ['RFC822'])
+
+            for data in msgdata:
+                mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
+                if mail.get_content_maintype() != 'multipart':
+                    continue
+
+                # logging
+                header_from = _charset_decoder(mail['From'])
+                header_subject = _charset_decoder(mail['Subject'])
+                print '[%s]: %s' % (header_from, header_subject)
+
+                for part in mail.walk():
+                    # if it's only plain text, i.e. no images
+                    if part.get_content_maintype() == 'multipart':
+                        continue
+                    # if no explicit attachments unless they're inline
+                    if part.get('Content-Disposition') is None:
+                        pass
+                    # if non-graphic inline data
+                    if not 'image/' in part.get_content_type():
+                        continue
+
+                    # only then we can save this mail part
+                    self._save_part(part, mail)
+
+                # all parts of mail processed, add it to the index
+                self._index[msgid] = msgid
+
+        self._cleanup()

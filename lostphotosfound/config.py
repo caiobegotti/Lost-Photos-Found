@@ -10,44 +10,54 @@ import sys
 # for configuration file
 import ConfigParser
 
+# keychain/keyring storage
+import keyring
+import getpass
+
 from lostphotosfound.utils import _app_folder
 
-class Config:
-    """
-    Configuration file manager
+SECTION = 'lost-photos-found'
 
-    Locate, open and read configuration file options, creates a template
-    if no configuration file is found (default is ~/.LostPhotosFound/config)
-    """
+class Config:
+    """Configuration file manager (default is ~/.LostPhotosFound/config)"""
+
     def __init__(self):
         self._file = os.path.join(_app_folder(), 'config')
-
-        if not os.path.isfile(self._file):
-            self._create_file()
-
         self._config = ConfigParser.ConfigParser()
         self._config.read(self._file)
 
-    def get(self, section, option):
-        """
-        Get and return a given config field, i.e. username
+        if not self._config.has_option(SECTION, 'username'):
+            self._setup()
 
-        @param section: likely to be your mail service, i.e. gmail
-        @param option: the field you want to retrieve from the config
-        """
-        return self._config.get(section, option)
+        username = self._config.get(SECTION, 'username')
+        password = keyring.get_password(SECTION, username)
+        self._config.set(SECTION, 'password', password)
 
-    def _create_file(self):
-        """Internal function to create a dummy config file if none is found"""
+    def _setup(self):
+        """Function to create a config file and store password in system keychain"""
 
         config = ConfigParser.ConfigParser()
-        config.add_section('gmail')
-        config.set('gmail', 'host', 'imap.gmail.com')
-        config.set('gmail', 'username', 'username@gmail.com')
-        config.set('gmail', 'password', 'password')
+        config.add_section(SECTION)
+
+        username = raw_input("Gmail username: ")
+        if not "@" in username:
+            username += "@gmail.com"
+
+        password = getpass.getpass("Password: ")
+
+        config.set(SECTION, 'host', 'imap.gmail.com')
+        config.set(SECTION, 'username', username)
+        keyring.set_password(SECTION, username, password)
 
         with open(self._file, 'w') as configfile:
             config.write(configfile)
 
-        print '\nPlease edit your config file %s\n' % (self._file)
-        sys.exit()
+        self._config.read(self._file)
+
+        print '\nSetup saved at %s, your password is in the system keychain!' % self._file
+        print 'If you want to change any parameter, just delete the config file to start over.\n'
+
+    def get(self, option):
+        """Get and return a given config field, i.e. username"""
+
+        return self._config.get(SECTION, option)
