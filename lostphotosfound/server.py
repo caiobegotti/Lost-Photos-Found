@@ -96,7 +96,7 @@ class Server:
 
         # stats logging
         print "LOG: selecting message folder '%s'" % all_mail
-        self._server.select_folder(all_mail)
+        self._server.select_folder(all_mail, readonly=True)
 
     def _filter_messages(self):
         """Filter mail to only parse ones containing images"""
