@@ -242,7 +242,7 @@ class Server:
                     if part.get('Content-Disposition') is None:
                         pass
                     # if non-graphic inline data
-                    if not 'image/' in part.get_content_type():
+                    if 'image/' not in part.get_content_type():
                         continue
 
                     # only then we can save this mail part

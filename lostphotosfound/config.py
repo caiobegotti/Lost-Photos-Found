@@ -5,7 +5,6 @@
 
 # common fs/system call
 import os
-import sys
 
 # for configuration file
 import ConfigParser
@@ -40,7 +39,7 @@ class Config:
         config.add_section(SECTION)
 
         username = raw_input("Gmail username: ")
-        if not "@" in username:
+        if "@" not in username:
             username += "@gmail.com"
 
         password = getpass.getpass("Password: ")
