@@ -40,5 +40,6 @@ def _charset_decoder(header):
             header = header[0][0].decode(guessed).encode('utf-8')
     else:
         header = header[0][0].decode(header[0][1]).encode('utf-8')
+    print 'LOG: [decoded header] %s' % repr(header)
 
     return header
