@@ -29,7 +29,7 @@ TODO
 ----
 
 - Generic IMAP server support, not just Gmail's?
-- Create a simple interface with pyqt like an album frame (using QFileSystemWatcher to autorefresh it?)
+- Create a simple interface with pyqt like an album frame (using QFileSystemWatcher?)
 - CLI options for download criteria and attachment size?
 - Better (real) debug logging :-)
 - Statistics!
