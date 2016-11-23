@@ -113,9 +113,9 @@ class Server:
         # that's why we only support gmail
         # for other mail services we'd have to translate the custom
         # search to actual IMAP queries, thus no X-GM-RAW cookie for us
-        criteria = 'X-GM-RAW "has:attachment filename:(%s)"' % (mimelist)
+        criteria = 'has:attachment filename:(%s)' % (mimelist)
         try:
-            messages = self._server.search([criteria])
+            messages = self._server.gmail_search(criteria)
         except:
             raise Exception('Search criteria returned a failure, it must be a valid gmail search')
 
