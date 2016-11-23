@@ -1,3 +1,3 @@
-imapclient==0.13
+imapclient
 keyring
 chardet
