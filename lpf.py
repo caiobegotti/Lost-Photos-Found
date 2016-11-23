@@ -8,7 +8,9 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 # Lost-Photos-Found, recover all your images buried deep in Gmail!
 
+import os
 import sys
+
 from lostphotosfound.server import Server
 from lostphotosfound.config import Config
 
@@ -18,7 +20,7 @@ if __name__ == "__main__":
     username = config.get('username')
     password = config.get('password')
 
-    imap = Server(host, username, password, debug=False)
+    imap = Server(host, username, password, debug=os.getenv('DEBUG', False))
     imap.lostphotosfound()
 
     print 'All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)'

@@ -117,7 +117,7 @@ class Server:
         try:
             messages = self._server.search([criteria])
         except:
-            raise Exception('Search criteria return a failure, it must be a valid gmail search')
+            raise Exception('Search criteria returned a failure, it must be a valid gmail search')
 
         # stats logging
         print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)

@@ -9,12 +9,10 @@ Installation and usage
 To install the basic dependencies via PyPI:
 
 ```
-pip install imapclient
-pip install keyring
-pip install chardet
+pip install -r requirements.txt
 ```
 
-Your Python installation is supposed to have the ```email``` module by the way. Tests have been done using Python 2.7.3rc2.
+Your Python installation is supposed to have the ```email``` module by the way. Tests have been done using Python 2.7.x.
 
 Once your environment is ready just run ```./lpf.py```. It will create a basic config file and aks for your credentials. The config file is in ~/.LostPhotosFound/config by default, if you ever need to change it.
 
