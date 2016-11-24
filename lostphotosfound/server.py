@@ -32,7 +32,7 @@ class Server:
     fetch all attachments of the mails matching the criteria and
     save them locally with a timestamp
     """
-    def __init__(self, host, username, password, debug=False):
+    def __init__(self, host, username, password, search='', debug=False):
         """
         Server class __init__ which expects an IMAP host to connect to
 
@@ -60,6 +60,9 @@ class Server:
         hashes = '.hashes_%s' % (username)
         hashes = os.path.join(_app_folder(), hashes)
         self._hashes = shelve.open(hashes, writeback=True)
+
+	# additional email filtering using Gmail search syntax
+	self._search = search
 
         self._username = username
         self._login(username, password)
@@ -114,6 +117,11 @@ class Server:
         # for other mail services we'd have to translate the custom
         # search to actual IMAP queries, thus no X-GM-RAW cookie for us
         criteria = 'has:attachment filename:(%s)' % (mimelist)
+
+        # add user-defined search criteria
+        if self._search:
+            criteria = '{} {}'.format(self._search, criteria)
+
         try:
             messages = self._server.gmail_search(criteria)
         except:
