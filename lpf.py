@@ -10,17 +10,24 @@ __credits__   = ['Claudio Matsuoka', 'Alexandre Possebom']
 
 import os
 import sys
+import argparse
 
 from lostphotosfound.server import Server
 from lostphotosfound.config import Config
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-S', '--search', type=str, help='specify additional search criteria')
+    args = parser.parse_args()
+
     config = Config()
     host = config.get('host')
     username = config.get('username')
     password = config.get('password')
+    search = args.search
 
-    imap = Server(host, username, password, debug=os.getenv('DEBUG', False))
+    imap = Server(host, username, password, search=search, debug=os.getenv('DEBUG', False))
     imap.lostphotosfound()
 
     print 'All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)'
