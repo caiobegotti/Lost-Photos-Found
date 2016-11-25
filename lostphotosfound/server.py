@@ -32,7 +32,7 @@ class Server:
     fetch all attachments of the mails matching the criteria and
     save them locally with a timestamp
     """
-    def __init__(self, host, username, password, search='', debug=False):
+    def __init__(self, host, username, password, search='', debug=False, use_index=True):
         """
         Server class __init__ which expects an IMAP host to connect to
 
@@ -63,6 +63,9 @@ class Server:
 
 	# additional email filtering using Gmail search syntax
 	self._search = search
+
+	# ignore index file
+	self._use_index = use_index
 
         self._username = username
         self._login(username, password)
@@ -225,7 +228,7 @@ class Server:
             msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
 
             # mail has been processed in the past, skip it
-            if msgid in self._index.keys():
+            if self._use_index and msgid in self._index.keys():
                 print 'Skipping X-GM-MSDID %s' % (msgid)
                 continue
 

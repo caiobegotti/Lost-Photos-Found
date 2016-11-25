@@ -18,6 +18,7 @@ from lostphotosfound.config import Config
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--no-index', help='ignore retrieved email index', action='store_true')
     parser.add_argument('-S', '--search', type=str, help='specify additional search criteria')
     args = parser.parse_args()
 
@@ -26,8 +27,10 @@ if __name__ == "__main__":
     username = config.get('username')
     password = config.get('password')
     search = args.search
+    use_index = not args.no_index
 
-    imap = Server(host, username, password, search=search, debug=os.getenv('DEBUG', False))
+    imap = Server(host, username, password, search=search, debug=os.getenv('DEBUG', False),
+                  use_index=use_index)
     imap.lostphotosfound()
 
     print 'All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)'
