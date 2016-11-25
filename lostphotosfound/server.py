@@ -236,7 +236,12 @@ class Server:
             msgdata = self._server.fetch([msg], ['RFC822'])
 
             for data in msgdata:
-                mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
+                try:
+                    mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
+                except UnicodeDecodeError:
+                    print("Warning: can't encode message data to UTF-8")
+                    mail = message_from_string(msgdata[data]['RFC822'])
+
                 if mail.get_content_maintype() != 'multipart':
                     continue
 
