@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--no-index', help='ignore retrieved email index', action='store_true')
+    parser.add_argument('-F', '--folders', help='create folders for email senders', action='store_true')
     parser.add_argument('-S', '--search', type=str, help='specify additional search criteria')
-    parser.add_argument('--sort-by-sender', help='sort retrieved images by sender', action='store_true')
     args = parser.parse_args()
 
     config = Config()
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     password = config.get('password')
     search = args.search
     use_index = not args.no_index
-    use_folders = args.sort_by_sender
+    use_folders = args.folders
 
     imap = Server(host, username, password, search=search, debug=os.getenv('DEBUG', False),
                   use_index=use_index, use_folders=use_folders)
