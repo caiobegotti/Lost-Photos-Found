@@ -18,7 +18,7 @@ from lostphotosfound.config import Config
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--no-index', help='ignore retrieved email index', action='store_true')
+    parser.add_argument('--no-index', help='ignore retrieved email index', action='store_true')
     parser.add_argument('-S', '--search', type=str, help='specify additional search criteria')
     args = parser.parse_args()
 
