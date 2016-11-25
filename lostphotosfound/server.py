@@ -21,6 +21,9 @@ from email.utils import parsedate
 # the working man (should we connect to IMAP as a read-only client btw?)
 from imapclient import IMAPClient
 
+# to parse the sender email address
+import email
+
 from lostphotosfound.utils import _app_folder
 from lostphotosfound.utils import _charset_decoder
 
@@ -32,7 +35,8 @@ class Server:
     fetch all attachments of the mails matching the criteria and
     save them locally with a timestamp
     """
-    def __init__(self, host, username, password, search='', debug=False, use_index=True):
+    def __init__(self, host, username, password, search='', debug=False, use_index=True,
+                 use_folders=False):
         """
         Server class __init__ which expects an IMAP host to connect to
 
@@ -66,6 +70,9 @@ class Server:
 
 	# ignore index file
 	self._use_index = use_index
+
+        # create folders by sender
+        self._use_folders = use_folders
 
         self._username = username
         self._login(username, password)
@@ -134,7 +141,7 @@ class Server:
         print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)
         return messages
 
-    def _save_part(self, part, mail):
+    def _save_part(self, part, mail, sender):
         """
         Internal function to decode attachment filenames and save them all
 
@@ -176,6 +183,11 @@ class Server:
         username = self._username
         userdir = os.path.expanduser('~/LostPhotosFound')
         savepath = os.path.join(userdir, username)
+
+        # create sub-folders for senders if user told us to
+        if self._use_folders:
+            savepath = os.path.join(savepath, sender)
+
         if not os.path.isdir(savepath):
             os.makedirs(savepath)
 
@@ -250,6 +262,11 @@ class Server:
                 header_subject = _charset_decoder(mail['Subject'])
                 print '[%s]: %s' % (header_from, header_subject)
 
+		# use raw header, header_from sometimes excludes the email address
+		sender = email.utils.parseaddr(mail['From'])[1]
+		if not sender:
+			sender = 'unknown_sender'
+
                 for part in mail.walk():
                     # if it's only plain text, i.e. no images
                     if part.get_content_maintype() == 'multipart':
@@ -262,7 +279,7 @@ class Server:
                         continue
 
                     # only then we can save this mail part
-                    self._save_part(part, mail)
+                    self._save_part(part, mail, sender)
 
                 # all parts of mail processed, add it to the index
                 self._index[msgid] = msgid
