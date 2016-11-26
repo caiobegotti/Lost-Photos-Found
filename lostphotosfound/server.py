@@ -35,8 +35,8 @@ class Server:
     fetch all attachments of the mails matching the criteria and
     save them locally with a timestamp
     """
-    def __init__(self, host, username, password, search='', debug=False, use_index=True,
-                 use_folders=False):
+    def __init__(self, host, username, password, search='', label='',
+                 debug=False, use_index=True, use_folders=False):
         """
         Server class __init__ which expects an IMAP host to connect to
 
@@ -68,6 +68,9 @@ class Server:
 	# additional email filtering using Gmail search syntax
 	self._search = search
 
+        # use a different default label
+        self._label = label
+
 	# ignore index file
 	self._use_index = use_index
 
@@ -93,15 +96,11 @@ class Server:
         except:
             raise Exception('Cannot login, check username/password, are you using 2-factor auth?')
 
-        # you may want to hack this to only fetch attachments
-        # from a different exclusive label
-        all_mail = ""
-
         # gmail's allmail folder always has the '\\AllMail' flag set
-        # regardless which language the interface is using
-        if not all_mail:
-            all_mail = "[Gmail]/All Mail"
-
+        # regardless of the user language in gmail's settings
+        if self._label:
+            all_mail = self._label
+        else:
             for flags, delimiter, folder_name in self._server.xlist_folders():
                 if u'\\AllMail' in flags:
                     all_mail = folder_name
@@ -109,7 +108,10 @@ class Server:
 
         # stats logging
         print "LOG: selecting message folder '%s'" % all_mail
-        self._server.select_folder(all_mail, readonly=True)
+        try:
+            self._server.select_folder(all_mail, readonly=True)
+        except IMAPClient.Error:
+            raise Exception('Cannot select the folder {}, please verify its name'.format(all_mail))
 
     def _filter_messages(self):
         """Filter mail to only parse ones containing images"""
