@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 __license__   = 'GPLv2'
@@ -39,5 +39,5 @@ if __name__ == "__main__":
         debug=os.getenv('DEBUG', False))
     imap.lostphotosfound()
 
-    print 'All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)'
+    print("All done, see directory ~/LostPhotosFound for all the treasure we found for you :-)")
     sys.exit()

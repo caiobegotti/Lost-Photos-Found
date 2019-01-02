@@ -15,7 +15,7 @@ import mimetypes
 import shelve
 
 # to build the mail object and pickle fields
-from email import message_from_string
+from email import message_from_bytes
 from email.utils import parsedate
 
 # the working man (should we connect to IMAP as a read-only client btw?)
@@ -66,13 +66,13 @@ class Server:
         self._hashes = shelve.open(hashes, writeback=True)
 
 	# additional email filtering using Gmail search syntax
-	self._search = search
+        self._search = search
 
         # use a different default label
         self._label = label
 
 	# ignore index file
-	self._use_index = use_index
+        self._use_index = use_index
 
         # create folders by sender
         self._use_folders = use_folders
@@ -93,7 +93,7 @@ class Server:
 
         try:
             self._server.login(username, password)
-        except:
+        except Exception:
             raise Exception('Cannot login, check username/password, are you using 2-factor auth?')
 
         # gmail's allmail folder always has the '\\AllMail' flag set
@@ -102,12 +102,12 @@ class Server:
             all_mail = self._label
         else:
             for flags, delimiter, folder_name in self._server.xlist_folders():
-                if u'\\AllMail' in flags:
+                if b'\\AllMail' in flags:
                     all_mail = folder_name
                     break
 
         # stats logging
-        print "LOG: selecting message folder '%s'" % all_mail
+        print("LOG: selecting message folder '{}'".format(all_mail))
         try:
             self._server.select_folder(all_mail, readonly=True)
         except IMAPClient.Error:
@@ -140,7 +140,7 @@ class Server:
             raise Exception('Search criteria returned a failure, it must be a valid gmail search')
 
         # stats logging
-        print 'LOG: %d messages matched the search criteria %s' % (len(messages), criteria)
+        print("LOG: {} messages matched the search criteria {}".format(len(messages), criteria))
         return messages
 
     def _save_part(self, part, mail, sender):
@@ -156,7 +156,10 @@ class Server:
 
         # we check if None in filename instead of just if it is None
         # due to the type of data decode_header returns to us
-        header_filename = _charset_decoder(part.get_filename())
+        name = part.get_filename()
+        if name is None:
+            name = "__unnamed__"
+        header_filename = _charset_decoder(name)
 
         # i.e. some inline attachments have no filename field in the header
         # so we have to hack around it and get the name field
@@ -169,10 +172,11 @@ class Server:
 
         # sanitize it
         punct = '!"#$&\'*+/;<>?[\]^`{|}~'
-        header_filename = header_filename.translate(None, punct)
+        table = str.maketrans(dict.fromkeys(punct))
+        header_filename = header_filename.translate(table)
 
         # 2012-10-28_19-15-22 (Y-M-D_H-M-S)
-        header_date = parsedate(mail['date'])
+        header_date = parsedate(_charset_decoder(mail['date']))
         header_date = '%s-%s-%s_%s-%s-%s_' % (header_date[0],
                                               header_date[1],
                                               header_date[2],
@@ -194,7 +198,7 @@ class Server:
             os.makedirs(savepath)
 
         # logging complement
-        print '\t...%s' % (filename)
+        print("\t...{}".format(filename))
 
         saved = os.path.join(savepath, filename)
         if not os.path.isfile(saved):
@@ -215,7 +219,7 @@ class Server:
                         raise Exception(message)
                     self._hashes[payload_hash] = payload_hash
                 else:
-                    print 'Duplicated attachment %s (%s)' % (saved, payload_hash)
+                    print("Duplicated attachment {} ({})".format(saved, payload_hash))
                     os.remove(saved)
 
     def _cleanup(self):
@@ -239,35 +243,37 @@ class Server:
             except:
                 raise Exception('Could not fetch the message ID, server did not respond')
 
-            msgid = str(idfetched[idfetched.keys()[0]]['X-GM-MSGID'])
+            keys = list(idfetched.keys());
+            msgid = str(idfetched[keys[0]][b'X-GM-MSGID'])
 
             # mail has been processed in the past, skip it
             if self._use_index and msgid in self._index.keys():
-                print 'Skipping X-GM-MSDID %s' % (msgid)
+                print("Skipping X-GM-MSDID {}".format(msgid))
                 continue
 
             # if it hasn't, fetch it and iterate through its parts
             msgdata = self._server.fetch([msg], ['RFC822'])
 
             for data in msgdata:
-                try:
-                    mail = message_from_string(msgdata[data]['RFC822'].encode('utf-8'))
-                except UnicodeDecodeError:
-                    print("Warning: can't encode message data to UTF-8")
-                    mail = message_from_string(msgdata[data]['RFC822'])
+                mail = message_from_bytes(msgdata[data][b'RFC822'])
 
                 if mail.get_content_maintype() != 'multipart':
                     continue
 
                 # logging
                 header_from = _charset_decoder(mail['From'])
-                header_subject = _charset_decoder(mail['Subject'])
-                print '[%s]: %s' % (header_from, header_subject)
+
+                if mail["Subject"]:
+                    header_subject = _charset_decoder(mail["Subject"])
+                else:
+                    header_subject = "no_subject"
+
+                print('[{}]: {}'.format(header_from, header_subject))
 
 		# use raw header, header_from sometimes excludes the email address
-		sender = email.utils.parseaddr(mail['From'])[1]
-		if not sender:
-			sender = 'unknown_sender'
+                sender = email.utils.parseaddr(mail["From"])[1]
+                if not sender:
+                    sender = "unknown_sender"
 
                 for part in mail.walk():
                     # if it's only plain text, i.e. no images

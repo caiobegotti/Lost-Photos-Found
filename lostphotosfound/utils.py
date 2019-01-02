@@ -3,10 +3,11 @@
 # same license, author and
 # credits of the main script
 
+import chardet
 import os
 
-from chardet import detect
 from email.header import decode_header
+
 
 def _app_folder():
     """
@@ -14,8 +15,9 @@ def _app_folder():
     """
     directory = os.path.expanduser('~/.LostPhotosFound')
     if not os.path.isdir(directory):
-        os.makedirs(directory, 0700)
+        os.makedirs(directory, 0o700)
     return directory
+
 
 def _charset_decoder(header):
     """
@@ -33,13 +35,23 @@ def _charset_decoder(header):
         fallback_header.append(forced)
         header = fallback_header
 
-    # string in [0], charset in [1]
-    if header[0][1] is None:
-        guessed = detect(header[0][0])['encoding']
-        if guessed is not None:
-            header = header[0][0].decode(guessed).encode('utf-8')
+    data = header[0][0]
+
+    # Ensure data is bytes, not string
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+
+    # Don't trust given encoding, it may be bogus
+    guessed = chardet.detect(data)
+    if guessed is not None and "encoding" in guessed and guessed["encoding"] is not None:
+        header = data.decode(guessed["encoding"])
     else:
-        header = header[0][0].decode(header[0][1]).encode('utf-8')
-    print 'LOG: [decoded header] %s' % repr(header)
+        header = _sanitize_bytes(data)
+
+    print("LOG: [decoded header] {}".format(repr(header)))
 
     return header
+
+
+def _sanitize_bytes(data: bytes) -> str:
+    return bytes(filter(lambda x: x >= 20 and x < 172, data)).decode("utf-8")
