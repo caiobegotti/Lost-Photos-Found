@@ -36,10 +36,18 @@ def _charset_decoder(header):
         header = fallback_header
 
     data = header[0][0]
+    encoding = header[0][1]
 
     # Ensure data is bytes, not string
     if isinstance(data, str):
         data = data.encode("utf-8")
+
+    # Try what the header says
+    if encoding is not None:
+        try:
+            return data.decode(encoding)
+        except Exception:
+            pass
 
     # Don't trust given encoding, it may be bogus
     guessed = chardet.detect(data)
