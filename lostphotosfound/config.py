@@ -7,7 +7,7 @@
 import os
 
 # for configuration file
-import ConfigParser
+import configparser
 
 # keychain/keyring storage
 import keyring
@@ -22,7 +22,7 @@ class Config:
 
     def __init__(self):
         self._file = os.path.join(_app_folder(), 'config')
-        self._config = ConfigParser.ConfigParser()
+        self._config = configparser.ConfigParser()
         self._config.read(self._file)
 
         if not self._config.has_option(SECTION, 'username'):
@@ -35,10 +35,10 @@ class Config:
     def _setup(self):
         """Function to create a config file and store password in system keychain"""
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.add_section(SECTION)
 
-        username = raw_input("Gmail username: ")
+        username = input("Gmail username: ")
         if "@" not in username:
             username += "@gmail.com"
 
@@ -53,8 +53,8 @@ class Config:
 
         self._config.read(self._file)
 
-        print '\nSetup saved at %s, your password is in the system keychain!' % self._file
-        print 'If you want to change any parameter, just delete the config file to start over.\n'
+        print("\nSetup saved at {}, your password is in the system keychain!".format(self._file))
+        print("If you want to change any parameter, just delete the config file to start over.\n")
 
     def get(self, option):
         """Get and return a given config field, i.e. username"""
